@@ -25,30 +25,73 @@ module.exports = (router) => {
                 if(err) {
 
                     if(err.code === 11000){
-                        res.json({ success: false, message: 'Username or e-mail already exists'});
+                        // res.json({ success: false, message: 'Username or e-mail already exists'});
+                        res.status(400).send({message: 'Username or e-mail already exists'});
                     }else {
 
                         if(err.errors){
                             if(err.errors.email) {
-                                res.json({success: false, message: err.errors.email.message}); //this ensures you use custom val messages
+                                // res.json({success: false, message: err.errors.email.message}); //this ensures you use custom val messages
+                                res.status(err.statusCode).send({message: err.errors.email.message});
                             } else if(err.errors.username){
-                                res.json({success: false, message: err.errors.username.message});
+                                // res.json({success: false, message: err.errors.username.message});
+                                res.status(err.statusCode).send({message: err.errors.username.message});
                             } else if(err.errors.password){
-                                res.json({success: false, message: err.errors.password.message});
+                                // res.json({success: false, message: err.errors.password.message});
+                                res.status(err.statusCode).send({message: err.errors.password.message});
                             } else{
-                                res.json({ success: false, message: err}); //todo proper catch all here && modular functions for errors?
+                                // res.json({ success: false, message: err}); //todo proper catch all here && modular functions for errors?
+                                res.status(err.statusCode).send({message: err});
                             }
                         }else{
-                            res.json({ success: false, message: 'Could not save user. Error: ', err});
+                            // res.json({ success: false, message: 'Could not save user. Error: ', err});
+                            res.status(err.statusCode).send({message: 'Could not save user. Error: ', err});
                         }
 
                     }
 
                 } else{
-                    res.json({ success: true, message: 'Successfully saved user.'})
+                    // res.json({ success: true, message: 'Successfully saved user.'})
+                    res.status(200).send({message: 'Successfully saved user.'});
                 }
             })
         }
+    });
+
+    router.get('/checkUserName/:username', (req, res) => {
+        if(!req.params.username)
+            res.status(400).send({message: 'Must provide a username'});
+
+        User.findOne({ username: req.params.username }, (err, user) => {
+            if (err) {
+                res.status(500).send({ message: err }); // Return connection error
+            } else {
+                // Check if user's e-mail is taken
+                if (user) {
+                    res.status(400).send({ message: 'Username is already taken' }); // Return as taken e-mail
+                } else {
+                    res.status(200).send({ message: 'Username is available' }); // Return as available e-mail
+                }
+            }
+        });
+    });
+
+    router.get('/checkEmail/:email', (req, res) => {
+        if(!req.params.email)
+            res.status(400).send({message: 'must provide a email'});
+
+        User.findOne({ email: req.params.email }, (err, user) => {
+            if (err) {
+                res.status(500).send({ message: err }); // Return connection error
+            } else {
+                // Check if user's e-mail is taken
+                if (user) {
+                    res.status(400).send({ message: 'E-mail is already taken' }); // Return as taken e-mail
+                } else {
+                    res.status(200).send({ message: 'E-mail is available' }); // Return as available e-mail
+                }
+            }
+        });
     });
 
     return router;

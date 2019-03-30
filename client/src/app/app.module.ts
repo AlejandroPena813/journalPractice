@@ -9,10 +9,13 @@ import { HomeComponent } from './components/home/home.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { RegisterComponent } from './components/register/register.component';
 
+import { AuthService } from "./services/auth.service";
+import {HttpClientModule} from "@angular/common/http";
+
 
 // TODO? @ts-ignore
 @NgModule({
-  declarations: [ //components
+  declarations: [ //components, directives, pipes. exports[] are these same comp but for other modules
     AppComponent,
     NavbarComponent,
     HomeComponent,
@@ -22,9 +25,10 @@ import { RegisterComponent } from './components/register/register.component';
   imports: [ //modules
     BrowserModule,
     AppRoutingModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    HttpClientModule
   ],
-  providers: [], //services, accessible to all parts of app
+  providers: [ AuthService ], //services, accessible to all parts of app or specific module
   bootstrap: [AppComponent]
 })
 export class AppModule { }

@@ -6,6 +6,7 @@ const config  = require('./config/database'); //importing module.exports of DB
 const path = require('path'); // prod requirement to connect to angular
 const authentication = require('./routes/authentication')(router); //passing it in this way is to share
 const bodyParser = require('body-parser');//acts as middleware to translate json
+const cors = require('cors');
 
 mongoose.Promise = global.Promise;//mongoose config
 mongoose.connect(config.uri, {useNewUrlParser: true}, (err) => {
@@ -16,11 +17,15 @@ mongoose.connect(config.uri, {useNewUrlParser: true}, (err) => {
     }
 });
 
+app.use(cors({ //once prd both running off same domain, so wont be needed.
+    origin: 'http://localhost:4200' //restrict access from origin url domain only
+}));
+
 app.use(bodyParser.urlencoded({ extended: false}));//middleware for json deserialization and into model. application/c-www-form-urlencoded accepted
 app.use(bodyParser.json());
 
 app.use(express.static(__dirname + '/client/dist/'));// TODO prod only
-app.use('/authentication', authentication);
+app.use('/api/authentication', authentication);
 
 app.get( '*', (req, res) => {
     res.sendFile(path.join(__dirname + '/client/dist/index/html')); //prod
@@ -36,3 +41,9 @@ app.get( '*', (req, res) => {
 app.listen(8080, () => {
     console.log('Listening on port 8080');
 });
+
+
+
+//TODO 'S
+// warning: CRLF will be replaced by LF in node_modules/bcrypt-nodejs/.gitattributes.
+// (node:1602) DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.

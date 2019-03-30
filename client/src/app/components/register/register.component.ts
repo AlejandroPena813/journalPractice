@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
+import { AuthService } from "../../services/auth.service";
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-register',
@@ -9,9 +11,18 @@ import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 export class RegisterComponent implements OnInit {
 
   form: FormGroup;//exporting the form
+  messageClass: string;
+  message: string;
+  processing: boolean = false;
+  usernameValid: boolean = false;
+  usernameMessage: string;
+  emailValid: boolean = false;
+  emailMessage: string;
 
   constructor(
-    private formBuilder: FormBuilder
+    private formBuilder: FormBuilder,
+    private authService: AuthService,
+    private router: Router
   ) {
     this.createForm();
   }
@@ -84,8 +95,70 @@ export class RegisterComponent implements OnInit {
     }
   }
 
+  disableForm() {
+    this.form.controls['username'].disable();
+    this.form.controls['email'].disable();
+    this.form.controls['password'].disable();
+    this.form.controls['confirm'].disable();
+  }
+
+  enableForm() {
+    this.form.controls['username'].enable();
+    this.form.controls['email'].enable();
+    this.form.controls['password'].enable();
+    this.form.controls['confirm'].enable();
+  }
+
   onRegisterSubmit(){
-    console.log('form submitted!');
+    this.processing = true;
+    this.disableForm();
+
+    const user = {
+      email: this.form.get('email').value,
+      username: this.form.get('username').value,
+      password: this.form.get('password').value
+    };
+
+    this.authService.registerUser(user).subscribe( data => {
+        console.log(data);
+        // todo toaster
+        this.messageClass = 'alert alert-success';
+        this.message = 'Successfully added user!'; // need standard/interface for http data.message;
+        setTimeout(() => {
+          this.router.navigate(['/login']);
+        }, 2000);
+      }, errResp => { // can create interface for errors. Standard for back-end messages.
+        this.messageClass = 'alert alert-danger';
+        this.message = errResp.error.message;
+        this.enableForm();
+        this.processing = false;
+      }
+    );
+  }
+
+  // Function to check if e-mail is taken
+  checkEmail() {
+    this.authService.checkEmail(this.form.get('email').value).subscribe(resp => {
+        this.emailValid = true;
+        this.emailMessage = 'E-mail is available';
+        // this.emailMessage = resp.body.message(); // todo get resp.message --> need class for http message
+    }, errResp => {
+      this.emailValid = false;
+      this.emailMessage = errResp.error.message;
+    });
+  }
+
+  // Function to check if username is available
+  checkUsername() {
+    this.authService.checkUsername(this.form.get('username').value).subscribe(resp => {
+      console.log(resp);
+      this.usernameValid = true;
+      this.usernameMessage = 'Username is available';
+      // this.usernameMessage = resp;
+    }, errResp => {
+      this.usernameValid = false;
+      this.usernameMessage = errResp.error.message;
+    });
   }
 
   ngOnInit() {
