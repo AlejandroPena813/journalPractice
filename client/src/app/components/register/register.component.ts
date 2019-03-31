@@ -140,8 +140,7 @@ export class RegisterComponent implements OnInit {
   checkEmail() {
     this.authService.checkEmail(this.form.get('email').value).subscribe(resp => {
         this.emailValid = true;
-        this.emailMessage = 'E-mail is available';
-        // this.emailMessage = resp.body.message(); // todo get resp.message --> need class for http message
+        this.emailMessage = resp['message'];
     }, errResp => {
       this.emailValid = false;
       this.emailMessage = errResp.error.message;
@@ -153,8 +152,7 @@ export class RegisterComponent implements OnInit {
     this.authService.checkUsername(this.form.get('username').value).subscribe(resp => {
       console.log(resp);
       this.usernameValid = true;
-      this.usernameMessage = 'Username is available';
-      // this.usernameMessage = resp;
+      this.usernameMessage = resp['message']; // proper way to read response message
     }, errResp => {
       this.usernameValid = false;
       this.usernameMessage = errResp.error.message;
